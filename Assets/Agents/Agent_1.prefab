@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 4431309187419252852}
   - component: {fileID: 1631398732091190098}
   m_Layer: 0
-  m_Name: Agent
+  m_Name: Agent_1
   m_TagString: Agent
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b4522f0648151f544b1ea78a5d0b47e6, type: 2}
+  - {fileID: 2100000, guid: 756476371041b6e4fa41971dcd170135, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -176,7 +176,8 @@ MonoBehaviour:
   _currentWaypoint: {fileID: 0}
   _cover: 0
   viewbox: {fileID: 0}
-  _team: 0
+  shoot: {fileID: 0}
+  _team: 1
   _health: 10
   _ammo: 5
   _maxAmmo: 10

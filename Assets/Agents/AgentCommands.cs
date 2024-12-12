@@ -80,5 +80,11 @@ public class AC_Reload : AgentCommand
         agent.startReload();
     }
 }
-
+public class AC_Attack : AgentCommand
+{
+    public override void execute(AgentNav agent)
+    {
+        agent.startAttack();
+    }
+}
 

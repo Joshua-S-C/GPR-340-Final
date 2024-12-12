@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - TacticalWaypoint
+  - Agent
   layers:
   - Default
   - TransparentFX

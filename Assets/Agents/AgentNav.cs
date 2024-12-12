@@ -15,6 +15,8 @@ public class AgentNav : MonoBehaviour
     [SerializeField] GameObject destination;
     [SerializeField] GameObject _currentWaypoint;
     public float _cover;
+    [SerializeField] viewBox viewbox;
+    [SerializeField] GameObject shoot;
 
     #region Agent Stat Variables
     [Space]
@@ -38,7 +40,8 @@ public class AgentNav : MonoBehaviour
     {
         Idle = 0,
         Moving = 1,
-        Reloading = 2
+        Reloading = 2,
+        Attacking = 3
     }
 
     [SerializeField] State state = State.Idle;
@@ -49,7 +52,36 @@ public class AgentNav : MonoBehaviour
     {
         title = "Base Agent Tree",
         trueFunc = (agent) => (agent.ammo > 0),
-        pos = new DecisionAction (new AC_RandomPos()),
+        pos = new DecisionComposite 
+        {
+            title = "Is there an enemy?",
+            trueFunc = (agent) => (
+                agent.viewbox.objs.Count > 0
+            ),
+
+            pos = new DecisionComposite 
+            {
+                title = "Attack!",
+                trueFunc = (agent) => (
+                    agent.ammo > 0
+                ),
+
+                pos = new DecisionAction(new AC_Attack()),
+                neg = new DecisionComposite
+                {
+                    title = "Nearby cover?",
+                    trueFunc = (agent) => (
+                        agent.isNearbyCover(10f) ||
+                        agent._cover < .5f &&
+                        agent.state != State.Reloading
+                    ),
+
+                    pos = new DecisionAction(new AC_Cover(10f, .5f)),
+                    neg = new DecisionAction(new AC_Reload())
+                }
+            },
+            neg = new DecisionAction(new AC_RandomPos())
+        },
         neg = new DecisionComposite
         {
             title = "Nearby cover?",
@@ -68,6 +100,7 @@ public class AgentNav : MonoBehaviour
     {
         twm = TacticalWaypointManager.instance;
         nav = GetComponent<NavMeshAgent>();
+        viewbox = GetComponentInChildren<viewBox>();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -137,6 +170,15 @@ public class AgentNav : MonoBehaviour
         StopCoroutine(reloading());
     }
 
+    public void startAttack()
+    {
+        viewbox.objs[0].GetComponent<AgentNav>().takeDamage();
+/*        GameObject shot = Instantiate(shoot);
+        Vector3 dir = transform.position - viewbox.objs[0].transform.position;
+
+        shoot.GetComponent<Rigidbody>().velocity = dir * 10;*/
+    }
+
     #region Helpers
 
     public float distanceToPoint(Vector3 point)
@@ -153,6 +195,11 @@ public class AgentNav : MonoBehaviour
         List<TacticalWaypoint> validPoints = twm.waypoints.Where(waypoint => distanceToPoint(waypoint.position) < range).ToList();
 
         return (validPoints.Count > 0);
+    }
+
+    internal void takeDamage()
+    {
+        health--;
     }
     #endregion
 }

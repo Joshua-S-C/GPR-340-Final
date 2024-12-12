@@ -30,18 +30,6 @@ public class DecisionComposite : Decision
     public Decision pos { get; set; }
     public Decision neg { get; set; }
 
-/*    
-// Constructor not needed cuz we have braces in c#
-
-    public DecisionComposite(string title, Decision pos, Decision neg, Func<AgentNav, bool> isTrue)
-    {
-        this.title = title;
-        this.pos = pos;
-        this.neg = neg;
-        this.isTrue = isTrue;
-    }
-*/
-
     public override AgentCommand getDecision(AgentNav agent)
     {
         bool result = trueFunc(agent);
