@@ -10,14 +10,4 @@ public class TacticalWaypoint : MonoBehaviour
 
     public Vector3 position { get { return transform.position; } private set { } }
 
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

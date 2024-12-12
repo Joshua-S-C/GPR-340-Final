@@ -40,7 +40,7 @@ public class AgentTeam : MonoBehaviour
             if (tickAgents)
                 foreach (AgentNav agent in _agents) agent.tick();
 
-            Debug.Log($"{name} ticked {_agents.Count} agents on team: {team}");
+            //Debug.Log($"{name} ticked {_agents.Count} agents on team: {team}");
 
             yield return new WaitForSecondsRealtime(tickTimeSeconds);
         }

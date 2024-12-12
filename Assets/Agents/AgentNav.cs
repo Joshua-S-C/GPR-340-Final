@@ -11,13 +11,14 @@ using static AgentTeam;
 [RequireComponent(typeof(NavMeshAgent))]
 public class AgentNav : MonoBehaviour
 {
+    [Header("View Vars")]
     [SerializeField] GameObject destination;
-
-    // Temp
     [SerializeField] GameObject _currentWaypoint;
     public float _cover;
 
     #region Agent Stat Variables
+    [Space]
+    [Header("Agent Vars")]
 
     [SerializeField] Team _team;
     public Team team { get { return _team; } private set { _team = value; } }
@@ -33,6 +34,15 @@ public class AgentNav : MonoBehaviour
 
     #endregion
 
+    enum State
+    {
+        Idle = 0,
+        Moving = 1,
+        Reloading = 2
+    }
+
+    [SerializeField] State state = State.Idle;
+
     TacticalWaypointManager twm;
     NavMeshAgent nav;
     Decision decisionTree = new DecisionComposite
@@ -43,16 +53,43 @@ public class AgentNav : MonoBehaviour
         neg = new DecisionComposite
         {
             title = "Nearby cover?",
-            trueFunc = (agent) => (agent.isNearbyCover(10f) && agent._cover < .5f),
+            trueFunc = (agent) => (
+                agent.isNearbyCover(10f) || 
+                agent._cover < .5f && 
+                agent.state != State.Reloading
+            ),
+
             pos = new DecisionAction(new AC_Cover(10f, .5f)),
             neg = new DecisionAction(new AC_Reload())
         }
     };
 
-    void Awake()
+    void Start()
     {
         twm = TacticalWaypointManager.instance;
         nav = GetComponent<NavMeshAgent>();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "TacticalWaypoint")
+        {
+            _cover = other.GetComponent<TacticalWaypoint>().cover;
+            _currentWaypoint = other.gameObject;
+            Debug.Log("Entered tactical waypoint");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        Debug.Log(other.tag);
+        if (other.tag == "TacticalWaypoint")
+        {
+            state = State.Idle;
+            _cover = 0;
+            _currentWaypoint = null;
+            Debug.Log("Left tactical waypoint");
+        }
     }
 
     public void tick()
@@ -64,8 +101,8 @@ public class AgentNav : MonoBehaviour
         else
             Debug.Log("Valid for seeking cover");
 
-
-        decisionTree.getDecision(this).execute(this);
+        if (state != State.Reloading)
+            decisionTree.getDecision(this).execute(this);
     }
 
     public void setDestination(TacticalWaypoint waypoint)
@@ -84,33 +121,20 @@ public class AgentNav : MonoBehaviour
     public void startReload()
     {
         Debug.Log($"{name} start reloading");
+        state = State.Reloading;
         StartCoroutine(reloading());
     }
     
     private IEnumerator reloading()
     {
-
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.tag == "TacticalWaypoint")
+        while (ammo < maxAmmo)
         {
-            _cover = other.GetComponent<TacticalWaypoint>().cover;
-            _currentWaypoint = other.gameObject;
-            Debug.Log("Entered tactical waypoint");
+            ammo++;
+            yield return new WaitForSecondsRealtime(.1f);
         }
-    }
 
-    private void OnTriggerExit(Collider other)
-    {
-        Debug.Log(other.tag);
-        if (other.tag == "TacticalWaypoint")
-        {
-            _cover = 0;
-            _currentWaypoint = null;
-            Debug.Log("Left tactical waypoint");
-        }
+        state = State.Idle;
+        StopCoroutine(reloading());
     }
 
     #region Helpers
@@ -122,6 +146,10 @@ public class AgentNav : MonoBehaviour
 
     public bool isNearbyCover(float range)
     {
+/*
+        foreach (TacticalWaypoint point in twm.waypoints)
+            Debug.Log(distanceToPoint(point.position));
+*/
         List<TacticalWaypoint> validPoints = twm.waypoints.Where(waypoint => distanceToPoint(waypoint.position) < range).ToList();
 
         return (validPoints.Count > 0);

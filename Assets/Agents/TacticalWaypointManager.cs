@@ -18,5 +18,6 @@ public class TacticalWaypointManager : MonoBehaviour
         instance = this;
 
         waypoints = FindObjectsOfType<TacticalWaypoint>().ToList();
+        Debug.Log(waypoints);
     }
 }

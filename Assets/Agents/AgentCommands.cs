@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using UnityEngine.AI;
-using UnityEngine;
-
 
 public abstract class AgentCommand
 {
@@ -67,9 +64,10 @@ public class AC_Cover : AgentCommand
         // List of way points within range
         List<TacticalWaypoint> validPoints = twm.waypoints.Where(waypoint => agent.distanceToPoint(waypoint.position) < range).ToList();
 
-        toGo = validPoints.Aggregate((min, other) => (min == null < min.cover ? other : min));
+        toGo = validPoints.Aggregate((min, other) => 
+        (min == (other.cover < min.cover) ? other : min));
         
-        UnityEngine.Debug.Log($"Nearest cover {toGo}");
+        UnityEngine.Debug.Log($"Nearest cover {toGo.name}");
 
         agent.setDestination(toGo);
     }
